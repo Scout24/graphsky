@@ -2,6 +2,7 @@
 $base_dir = dirname(__FILE__);
 
 # Dashboard settings
+$conf['graphite_url_base'] = "http://localhost";
 $conf['dashboard_domainname'] = "graphsky.example.com";
 $conf['dashboard_config'] = $base_dir . "/dashboards.json";
 $conf['dashboard_refresh_interval'] = "60";

@@ -100,6 +100,7 @@ if ( isset($report_name) ) {
         }
         else {
                     $target = build_graphite_series( $graph_config, $conf['graphite_prefix'] . "$host_cluster" );
+                    $target = $target . render_thresholds($graph_config);
         }
 
         $title = $title_prefix . " - " . $graph_config['title'];

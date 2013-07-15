@@ -14,7 +14,7 @@ foreach ($clusters as $cluster) {
     if (isset($g)) { $graph_reports = array($g); }
     else { $graph_reports = find_dashboards($env, $cluster_name); }
 
-    if (!isset($g)) { print "<a href=\"?$graph_args&c=$cluster_name&from=$gs&until=$ge\"><div class=\"banner_text\">$cluster_name</div></a><div class=\"graph_block\">"; }
+    if (!isset($g)) { print "<a href=\"".$conf['dashboard_url']."?$graph_args&c=$cluster_name&from=$gs&until=$ge\"><div class=\"banner_text\">$cluster_name</div></a><div class=\"graph_block\">"; }
     foreach ($graph_reports as $graph_report) {
         if ( show_on_dashboard($graph_report, $env, $cluster_name) ) {
             $current_graph_args = "$graph_args&c=$cluster_name";

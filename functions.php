@@ -36,6 +36,37 @@ function print_dropdown_menus($options, $choice, $default) {
 }
 
 
+function add_hostcluster_prefix_to_metric($host_cluster, $combined_metric) {
+    $expanded_metric = '';
+    foreach(explode(",", $combined_metric)  as $metric) {
+        if ( $expanded_metric.strlen($expanded_metric) ) {
+            $expanded_metric = $expanded_metric . ',';
+        }
+        $expanded_metric = $expanded_metric . "$host_cluster.$metric";
+    }
+    return $expanded_metric;
+}
+
+function render_thresholds( $graph_config ) {
+    $thresholds = '';
+    foreach( $graph_config['thresholds'] as $threshold_config ) {
+        $thresholds = $thresholds . "&target=" . create_threshold($threshold_config);
+    }
+    return $thresholds;
+}
+
+function create_threshold( $threshold_config ) {
+    if ( !isset($threshold_config['value']) || !isset($threshold_config['label']) || !isset($threshold_config['color']) ) {
+        return '';
+    }
+
+    $threshold = 'threshold(' . $threshold_config['value'];
+    $threshold = $threshold . ',"' . $threshold_config['label'] . '"';
+    $threshold = $threshold . ',"' . $threshold_config['color'] . '"';
+    $threshold = $threshold . ')';
+    return $threshold;
+}
+
 #------------------------------------------------------------------------------
 # Function to return graph  domainname.
 function get_graph_domainname() {
@@ -68,12 +99,18 @@ function build_graphite_series( $config, $host_cluster = "" ) {
             $functions[0] = "sumSeries";
         if ( isset($item['hostname']) && isset($item['clustername']) )
             $host_cluster = $item['clustername'] . "." . str_replace(".","_", $item['hostname']);
-        $metric = "$host_cluster.${item['metric']}";
+        $metric = add_hostcluster_prefix_to_metric($host_cluster, $item['metric']);
         foreach( $functions as $function ) {
             $metric = "$function($metric)";
         }
 
-        $targets[] = "target=". urlencode( "alias($metric,'${item['label']}')" );
+        $target = "alias($metric,'${item['label']}')";
+
+        if (is_cacti_style($item)) {
+            $target = 'cactiStyle(' . $target . ')';
+        }
+
+        $targets[] = "target=". urlencode( $target );
         $colors[] = $item['color'];
     }
 
@@ -99,6 +136,14 @@ function build_graphite_series( $config, $host_cluster = "" ) {
     return $output;
 }
 
+/**
+ * @param $item array the series element to render
+ * @return bool if this item should be rendered in cacti style mode
+ */
+function is_cacti_style($item) {
+    return !is_bool($item['cacti_style']) || $item['cacti_style'];
+}
+
 #------------------------------------------------------------------------------
 # Functions for printing graph (cards)
 function print_graph($args, $metric_report, $graph_size, $from, $until) {
@@ -109,7 +154,7 @@ function print_graph($args, $metric_report, $graph_size, $from, $until) {
     $graph_html = "
       <div class=\"graph_card\">
         <div class=\"graph_img\">
-          <a href=\"?$args&from=$from&until=$until\">
+          <a href=\"".$conf['dashboard_url']."?$args&from=$from&until=$until\">
             <img width=\"$width\" height=\"$height\" class=\"lazy\" src=\"img/blank.gif\" data-original=\"". get_graph_domainname() . "/graph.php?$args&$metric_report&z=$graph_size&from=$from&until=$until\" />
           </a>
         </div>
@@ -125,7 +170,7 @@ function print_zoom_graph($args, $metric_report, $graph_size, $from, $until) {
     $graph_html = "
       <div class=\"graph_card\">
         <div class=\"graph_img\">
-          <a href=\"graph.php?$args&$metric_report&from=$from&until=$until&z=xlarge\">
+          <a href=\"".$conf['dashboard_url']."/graph.php?$args&$metric_report&from=$from&until=$until&z=xlarge\">
             <img width=\"$width\" height=\"$height\" class=\"lazy\" src=\"img/blank.gif\" data-original=\"". get_graph_domainname() . "/graph.php?$args&$metric_report&z=$graph_size&from=$from&until=$until\" />
           </a>
         </div>
@@ -135,7 +180,7 @@ function print_zoom_graph($args, $metric_report, $graph_size, $from, $until) {
 
 function show_graph_buttons($args, $from, $until) {
     $button_html = "<div class=\"graph_buttons\">
-          <a href=\"graph_all_periods.php?$args\">
+          <a href=\"".$conf['dashboard_url']."/graph_all_periods.php?$args\">
             <img src=\"img/history_holo_16.png\" width=\"16\" height=\"16\" title=\"Show periodic graphs\">
           </a>
           <a href=\"graph.php?$args&from=$from&until=$until&z=xlarge\">
@@ -154,7 +199,7 @@ function print_period_graph($args, $timeframe) {
     $graph_html = "
       <div class=\"graph_card\">
         <div class=\"graph_img\">
-          <a href=\"graph.php?$args&z=xlarge&st=$timeframe+ago\">
+          <a href=\"".$conf['dashboard_url']."/graph.php?$args&z=xlarge&st=$timeframe+ago\">
             <img width=\"$width\" height=\"$height\" class=\"lazy\" src=\"img/blank.gif\" data-original=\"". get_graph_domainname() . "/graph.php?$args&z=large&st=$timeframe+ago\" />
           </a>
         </div>
