@@ -20,6 +20,7 @@ function sanitize_datetime ( $dt ) {
 #------------------------------------------------------------------------------
 # Function to print options for dropdown menus
 function print_dropdown_menus($options, $choice, $default) {
+    $option_values = '';
     if ( $default != "" ) {
         $option_values = "                <option value=\"\">$default</option>\n";
     }
@@ -49,8 +50,10 @@ function add_hostcluster_prefix_to_metric($host_cluster, $combined_metric) {
 
 function render_thresholds( $graph_config ) {
     $thresholds = '';
-    foreach( $graph_config['thresholds'] as $threshold_config ) {
-        $thresholds = $thresholds . "&target=" . create_threshold($threshold_config);
+    if (isset($graph_config['thresholds']) { 
+        foreach( $graph_config['thresholds'] as $threshold_config ) {
+            $thresholds = $thresholds . "&target=" . create_threshold($threshold_config);
+        }
     }
     return $thresholds;
 }
@@ -89,9 +92,9 @@ function build_graphite_series( $config, $host_cluster = "" ) {
     $pie = 0;
 
     foreach( $config[ 'series' ] as $item ) {
-        if ( $item['type'] == "stack" )
+        if ( isset($item['type']) && $item['type'] == "stack" )
             $stacked++;
-        if ( $item['type'] == "pie" )
+        if ( isset($item['type']) && $item['type'] == "pie" )
             $pie++;
         if ( isset($item['functions']) )
             $functions = $item['functions'];
@@ -141,7 +144,7 @@ function build_graphite_series( $config, $host_cluster = "" ) {
  * @return bool if this item should be rendered in cacti style mode
  */
 function is_cacti_style($item) {
-    return !is_bool($item['cacti_style']) || $item['cacti_style'];
+    return isset($item['cacti_style']) && (!is_bool($item['cacti_style']) || $item['cacti_style']);
 }
 
 #------------------------------------------------------------------------------
@@ -154,7 +157,7 @@ function print_graph($args, $metric_report, $graph_size, $from, $until) {
     $graph_html = "
       <div class=\"graph_card\">
         <div class=\"graph_img\">
-          <a href=\"".$conf['dashboard_url']."?$args&from=$from&until=$until\">
+          <a href=\"". $conf['dashboard_url'] . "?$args&from=$from&until=$until\">
             <img width=\"$width\" height=\"$height\" class=\"lazy\" src=\"img/blank.gif\" data-original=\"". get_graph_domainname() . "/graph.php?$args&$metric_report&z=$graph_size&from=$from&until=$until\" />
           </a>
         </div>
@@ -170,7 +173,7 @@ function print_zoom_graph($args, $metric_report, $graph_size, $from, $until) {
     $graph_html = "
       <div class=\"graph_card\">
         <div class=\"graph_img\">
-          <a href=\"".$conf['dashboard_url']."/graph.php?$args&$metric_report&from=$from&until=$until&z=xlarge\">
+          <a href=\"" . $conf['dashboard_url'] . "/graph.php?$args&$metric_report&from=$from&until=$until&z=xlarge\">
             <img width=\"$width\" height=\"$height\" class=\"lazy\" src=\"img/blank.gif\" data-original=\"". get_graph_domainname() . "/graph.php?$args&$metric_report&z=$graph_size&from=$from&until=$until\" />
           </a>
         </div>
@@ -179,8 +182,9 @@ function print_zoom_graph($args, $metric_report, $graph_size, $from, $until) {
 }
 
 function show_graph_buttons($args, $from, $until) {
+    global $conf;
     $button_html = "<div class=\"graph_buttons\">
-          <a href=\"".$conf['dashboard_url']."/graph_all_periods.php?$args\">
+          <a href=\"" . $conf['dashboard_url'] . "/graph_all_periods.php?$args\">
             <img src=\"img/history_holo_16.png\" width=\"16\" height=\"16\" title=\"Show periodic graphs\">
           </a>
           <a href=\"graph.php?$args&from=$from&until=$until&z=xlarge\">
@@ -199,7 +203,7 @@ function print_period_graph($args, $timeframe) {
     $graph_html = "
       <div class=\"graph_card\">
         <div class=\"graph_img\">
-          <a href=\"".$conf['dashboard_url']."/graph.php?$args&z=xlarge&st=$timeframe+ago\">
+          <a href=\"" . $conf['dashboard_url'] . "/graph.php?$args&z=xlarge&st=$timeframe+ago\">
             <img width=\"$width\" height=\"$height\" class=\"lazy\" src=\"img/blank.gif\" data-original=\"". get_graph_domainname() . "/graph.php?$args&z=large&st=$timeframe+ago\" />
           </a>
         </div>
