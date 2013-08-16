@@ -50,7 +50,7 @@ function add_hostcluster_prefix_to_metric($host_cluster, $combined_metric) {
 
 function render_thresholds( $graph_config ) {
     $thresholds = '';
-    if (isset($graph_config['thresholds']) { 
+    if (isset($graph_config['thresholds'])) { 
         foreach( $graph_config['thresholds'] as $threshold_config ) {
             $thresholds = $thresholds . "&target=" . create_threshold($threshold_config);
         }
